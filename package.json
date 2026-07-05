@@ -1,0 +1,22 @@
+{
+  "name": "aluminum-marketing-mailer",
+  "version": "1.0.0",
+  "description": "Google Apps Script marketing mailer",
+  "scripts": {
+    "clean": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "compile": "tsc",
+    "copy-manifest": "node -e \"require('fs').copyFileSync('appsscript.json','dist/appsscript.json')\"",
+    "copy-html": "node -e \"require('fs').cpSync('src/templates','dist/templates',{recursive:true})\"",
+    "build": "npm run clean && npm run compile && npm run copy-manifest && npm run copy-html",
+    "push": "npm run build && clasp push",
+    "watch": "tsc --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@types/google-apps-script": "^2.0.11",
+    "typescript": "^5.8.0"
+  }
+}
