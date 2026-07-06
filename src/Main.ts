@@ -1,5 +1,12 @@
 const SHEET_ID = "17Fsn7FGGHGIwrxea0bOLtmBF5-VMn30nIUxxPu78YvM";
 const SHEET_INDEX = 0;
+const EMAIL_SUBJECT = "Factory Supply: Aluminum Foil Food Containers & Rolls";
+
+let Context = {
+  remainingQuota: 0,
+  ss: null as GoogleAppsScript.Spreadsheet.Spreadsheet | null,
+  sheet: null as GoogleAppsScript.Spreadsheet.Sheet | null,
+};
 
 function main() {
   try {
@@ -18,12 +25,17 @@ function hello() {
 function init(){
   try {
     const ss = SpreadsheetApp.openById(SHEET_ID);
+    Context.ss = ss;
     Logger.log("table initialized successfully");
     let isValid = checkSheets(ss);
     if (!isValid) {
       throw new Error("Table format is incorrect");
     }
 
+    //MailApp getRemainingDailyQuota()
+    let remainingQuota = MailApp.getRemainingDailyQuota();
+    Context.remainingQuota = remainingQuota;
+    Logger.log(`Remaining daily email quota: ${remainingQuota}`); 
     return ss;
   } catch (error) {
     Logger.log(`table initialization failed: ${error}`);
@@ -34,6 +46,7 @@ function checkSheets(ss: GoogleAppsScript.Spreadsheet.Spreadsheet): boolean {
   let isValid = false;
   try {
     const sheet = ss.getSheets()[SHEET_INDEX];
+    Context.sheet = sheet;
     const rowData: any[] = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     isValid = true;
   }catch (error) {
@@ -53,18 +66,21 @@ function doTask(ss: GoogleAppsScript.Spreadsheet.Spreadsheet){
   const sentAtColumn = 5;
   try {
     const sheet = ss.getSheets()[SHEET_INDEX];
-    const data = sheet.getDataRange().getValues();
-    for(let i = 0; i < data.length; i++) {
+    const data = sheet.getDataRange().getValues().filter((row) => {
+      const status = String(row[statusColumn - 1] ?? "").trim();
+      return status !== EmailStatus.Sent; // Filter out rows where status is "Sent"
+    }); // Skip header row
+    for(let i = 1; i < data.length && i < Context.remainingQuota; i++) {
       const email = String(data[i][emailColumnIndex] ?? "").trim();
       if (isValidEmail(email)) {
         // Send email logic here
         const result = sendEmail(email);
         if (result.success) {
-          sheet.getRange(i+1, statusColumn).setValue("Sent");
+          sheet.getRange(i+1, statusColumn).setValue(EmailStatus.Sent);
           sheet.getRange(i+1, sentAtColumn).setValue(new Date());
           Logger.log(`Email sent successfully to ${email}`);
         } else {
-          sheet.getRange(i+1, statusColumn).setValue("Failed");
+          sheet.getRange(i+1, statusColumn).setValue(EmailStatus.Failed);
           Logger.log(`Failed to send email to ${email}: ${result.error}`);
         }
       }else{
@@ -79,9 +95,10 @@ function doTask(ss: GoogleAppsScript.Spreadsheet.Spreadsheet){
 function sendEmail(email: string) {
   let result: SendResult;
   try {
-    const subject = "Test Email";
-    const body = "This is a test email.";
-    MailApp.sendEmail(email, subject, body);
+    const htmlBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact").getContent();
+    const textBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact-text").getContent();
+    const subject = EMAIL_SUBJECT;
+    GmailApp.sendEmail(email, subject, textBody, { htmlBody, from: "sales@dinghaofoil.com", name: "Dinghao Foil"});
     result = { success: true };
   }catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);
