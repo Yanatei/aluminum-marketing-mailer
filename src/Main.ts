@@ -1,6 +1,9 @@
 const SHEET_ID = "1v6Gj5wP8Y7hcUPIDq2896uGSofYqF-7p4UwmlGMpt34";
-const SHEET_INDEX = 0;
+const SHEET_INDEX = 1;
 const EMAIL_SUBJECT = "Factory Supply: Aluminum Foil Food Containers & Rolls";
+const TEST_FLAG = false; // Set to true for testing, false for production
+const EMAIL_FROM = "sales@dinghaofoil.com";
+const EMAIL_NAME = "Dinghao Foil";
 
 let Context = {
   remainingQuota: 0,
@@ -68,7 +71,7 @@ function doTask(ss: GoogleAppsScript.Spreadsheet.Spreadsheet){
     const sheet = ss.getSheets()[SHEET_INDEX];
     const data = sheet.getDataRange().getValues().filter((row) => {
       const status = String(row[statusColumn - 1] ?? "").trim();
-      return status !== EmailStatus.Sent; // Filter out rows where status is "Sent"
+      return status !== EmailStatus.Send; // Filter out rows where status is "Send"
     }); // Skip header row
     for(let i = 1; i < data.length && i < Context.remainingQuota; i++) {
       const email = String(data[i][emailColumnIndex] ?? "").trim();
@@ -76,7 +79,7 @@ function doTask(ss: GoogleAppsScript.Spreadsheet.Spreadsheet){
         // Send email logic here
         const result = sendEmail(email);
         if (result.success) {
-          sheet.getRange(i+1, statusColumn).setValue(EmailStatus.Sent);
+          sheet.getRange(i+1, statusColumn).setValue(EmailStatus.Send);
           sheet.getRange(i+1, sentAtColumn).setValue(new Date());
           Logger.log(`Email sent successfully to ${email}`);
         } else {
@@ -98,7 +101,13 @@ function sendEmail(email: string) {
     const htmlBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact").getContent();
     const textBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact-text").getContent();
     const subject = EMAIL_SUBJECT;
-    GmailApp.sendEmail(email, subject, textBody, { htmlBody, from: "sales@dinghaofoil.com", name: "Dinghao Foil"});
+    if (TEST_FLAG) {
+      Logger.log(`Test Email Sending: Email: ${email}, Subject: ${subject}, 
+        Text Body: ${textBody}, HTML Body: ${htmlBody}, From: ${EMAIL_FROM}, Name: ${EMAIL_NAME}`);
+    }else{
+      GmailApp.sendEmail(email, subject, textBody, { htmlBody, from: EMAIL_FROM, name: EMAIL_NAME });
+    }
+    
     result = { success: true };
   }catch (error) {
     const errorMessage = error instanceof Error ? error.message : String(error);

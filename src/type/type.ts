@@ -3,6 +3,6 @@ interface SendResult {
   error?: string;
 }
 enum EmailStatus {
-  Sent = "Sent",
+  Send = "Send",
   Failed = "Failed"
 }
