@@ -1,6 +1,6 @@
 "use strict";
 const SHEET_ID = "1v6Gj5wP8Y7hcUPIDq2896uGSofYqF-7p4UwmlGMpt34";
-const SHEET_INDEX = 1;
+const SHEET_INDEX = 2;
 const EMAIL_SUBJECT = "Factory Supply: Aluminum Foil Food Containers & Rolls";
 const TEST_FLAG = false; // Set to true for testing, false for production
 const EMAIL_FROM = "sales@dinghaofoil.com";
@@ -74,6 +74,8 @@ function doTask(ss) {
         for (let i = 1; i < data.length && i < Context.remainingQuota; i++) {
             const status = String(data[i][statusColumn] ?? "").trim();
             if (status !== "") {
+                sheet.getRange(i + 1, statusColumn + 1).setValue(EmailStatus.Failed);
+                Logger.log(`Skipping index: ${i}: state: ${status}`);
                 continue;
             }
             const email = String(data[i][emailColumnIndex] ?? "").trim();

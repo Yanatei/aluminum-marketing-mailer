@@ -1,5 +1,5 @@
 const SHEET_ID = "1v6Gj5wP8Y7hcUPIDq2896uGSofYqF-7p4UwmlGMpt34";
-const SHEET_INDEX = 1;
+const SHEET_INDEX = 2;
 const EMAIL_SUBJECT = "Factory Supply: Aluminum Foil Food Containers & Rolls";
 const TEST_FLAG = false; // Set to true for testing, false for production
 const EMAIL_FROM = "sales@dinghaofoil.com";
