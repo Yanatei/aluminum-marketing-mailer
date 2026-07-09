@@ -54,11 +54,12 @@ function checkSheets(ss: GoogleAppsScript.Spreadsheet.Spreadsheet): boolean {
     Context.sheet = sheet;
     const rowData: any[] = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
     isValid = true;
+    Logger.log("Checking sheet data successfully");
   }catch (error) {
     Logger.log(`table format is incorrect: ${error}`);
     isValid = false;
   }
-  Logger.log("Checking sheet data successfully");
+
   return isValid;
 }
 /**
