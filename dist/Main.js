@@ -9,6 +9,8 @@ let Context = {
     remainingQuota: 0,
     ss: null,
     sheet: null,
+    successCount: 0,
+    failedCount: 0,
 };
 function main() {
     try {
@@ -64,26 +66,29 @@ function checkSheets(ss) {
  */
 function doTask(ss) {
     const emailColumnIndex = 2;
-    const statusColumn = 4;
-    const sentAtColumn = 5;
+    const statusColumn = 3;
+    const sentAtColumn = 4;
     try {
         const sheet = ss.getSheets()[SHEET_INDEX];
-        const data = sheet.getDataRange().getValues().filter((row) => {
-            const status = String(row[statusColumn - 1] ?? "").trim();
-            return status !== EmailStatus.Send; // Filter out rows where status is "Send"
-        }); // Skip header row
+        const data = sheet.getDataRange().getValues();
         for (let i = 1; i < data.length && i < Context.remainingQuota; i++) {
+            const status = String(data[i][statusColumn] ?? "").trim();
+            if (status !== "") {
+                continue;
+            }
             const email = String(data[i][emailColumnIndex] ?? "").trim();
             if (isValidEmail(email)) {
                 // Send email logic here
                 const result = sendEmail(email);
                 if (result.success) {
-                    sheet.getRange(i + 1, statusColumn).setValue(EmailStatus.Send);
-                    sheet.getRange(i + 1, sentAtColumn).setValue(new Date());
+                    Context.successCount++;
+                    sheet.getRange(i + 1, statusColumn + 1).setValue(EmailStatus.Send);
+                    sheet.getRange(i + 1, sentAtColumn + 1).setValue(new Date());
                     Logger.log(`Email sent successfully to ${email}`);
                 }
                 else {
-                    sheet.getRange(i + 1, statusColumn).setValue(EmailStatus.Failed);
+                    Context.failedCount++;
+                    sheet.getRange(i + 1, statusColumn + 1).setValue(EmailStatus.Failed);
                     Logger.log(`Failed to send email to ${email}: ${result.error}`);
                 }
             }
@@ -91,6 +96,8 @@ function doTask(ss) {
                 Logger.log(`Invalid email at row ${i + 1}: ${email}`);
             }
         }
+        Logger.log(`Task completed. Processed ${Math.min(data.length - 1, Context.remainingQuota)} rows.`);
+        Logger.log(`Summary - Success: ${Context.successCount}, Failed: ${Context.failedCount}`);
     }
     catch (error) {
         Logger.log(`Error in doTask: ${error}`);
