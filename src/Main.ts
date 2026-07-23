@@ -76,7 +76,7 @@ function doTask(ss: GoogleAppsScript.Spreadsheet.Spreadsheet){
     for(let i = 1; i < data.length && i < Context.remainingQuota; i++) {
       const status = String(data[i][statusColumn] ?? "").trim();
       if (status !== "") {
-        sheet.getRange(i+1, statusColumn+1).setValue(EmailStatus.Failed);
+        //sheet.getRange(i+1, statusColumn+1).setValue(EmailStatus.Failed);
         Logger.log(`Skipping index: ${i}: state: ${status}`);
         continue;
       }
