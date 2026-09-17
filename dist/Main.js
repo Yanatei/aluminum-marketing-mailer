@@ -1,9 +1,9 @@
 "use strict";
-const SHEET_ID = "1v6Gj5wP8Y7hcUPIDq2896uGSofYqF-7p4UwmlGMpt34";
-const SHEET_INDEX = 2;
+const SHEET_ID = "1lt8fsSkOUsSfXljXmd4Q5cis6ss-Vs0lW4e5s0sYOps";
+const SHEET_INDEX = 0;
 const EMAIL_SUBJECT = "Factory Supply: Aluminum Foil Food Containers & Rolls";
 const TEST_FLAG = false; // Set to true for testing, false for production
-const EMAIL_FROM = "sales@dinghaofoil.com";
+const EMAIL_FROM = "contact@dinghaofoil.com";
 const EMAIL_NAME = "Dinghao Foil";
 let Context = {
     remainingQuota: 0,
@@ -71,10 +71,10 @@ function doTask(ss) {
     try {
         const sheet = ss.getSheets()[SHEET_INDEX];
         const data = sheet.getDataRange().getValues();
-        for (let i = 1; i < data.length && i < Context.remainingQuota; i++) {
+        for (let i = 1; i < data.length && (Context.successCount + Context.failedCount) < Context.remainingQuota; i++) {
             const status = String(data[i][statusColumn] ?? "").trim();
             if (status !== "") {
-                sheet.getRange(i + 1, statusColumn + 1).setValue(EmailStatus.Failed);
+                //sheet.getRange(i+1, statusColumn+1).setValue(EmailStatus.Failed);
                 Logger.log(`Skipping index: ${i}: state: ${status}`);
                 continue;
             }
@@ -108,8 +108,8 @@ function doTask(ss) {
 function sendEmail(email) {
     let result;
     try {
-        const htmlBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact").getContent();
-        const textBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact-text").getContent();
+        const htmlBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact_ja").getContent();
+        const textBody = HtmlService.createHtmlOutputFromFile("templates/FirstContact-text_ja").getContent();
         const subject = EMAIL_SUBJECT;
         if (TEST_FLAG) {
             Logger.log(`Test Email Sending: Email: ${email}, Subject: ${subject}, 
